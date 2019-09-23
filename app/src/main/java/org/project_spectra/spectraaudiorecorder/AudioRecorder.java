@@ -27,7 +27,7 @@ import java.util.Locale;
 //Copied from https://gist.github.com/kmark/d8b1b01fb0d2febf5770
 public class AudioRecorder {
 
-  private RecordWaveTask recordTask = new RecordWaveTask(this);
+  private RecordWaveTask recordTask = null;
   
   public static String HelloWorld() {
       return "Hello World from Native!";
@@ -43,6 +43,14 @@ public class AudioRecorder {
   }
 
   private void launchTask(String recordingPath) {
+    
+    recordTask = (RecordWaveTask) getLastCustomNonConfigurationInstance();
+    if (recordTask == null) {
+        recordTask = new RecordWaveTask(this);
+    } else {
+        recordTask.setContext(this);
+    }
+
     switch (recordTask.getStatus()) {
         case RUNNING:
             Toast.makeText(this, "Task already running...", Toast.LENGTH_SHORT).show();

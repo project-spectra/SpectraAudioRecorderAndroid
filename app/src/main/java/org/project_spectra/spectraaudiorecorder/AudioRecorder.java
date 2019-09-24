@@ -27,10 +27,10 @@ import java.util.Locale;
 //Copied from https://gist.github.com/kmark/d8b1b01fb0d2febf5770
 public class AudioRecorder {
 
-  private RecordWaveTask recordTask = null;
+  private RecordWaveTask recordTask = new RecordWaveTask();
   
   public static String HelloWorld() {
-      return "Hello World from Native!";
+      return "Testing audio recording!";
   }
 
   public void stopTask() {
@@ -38,43 +38,43 @@ public class AudioRecorder {
     if (!recordTask.isCancelled() && recordTask.getStatus() == AsyncTask.Status.RUNNING) {
       recordTask.cancel(false);
     } else {
-      Toast.makeText(AudioRecordActivity.this, "Task not running.", Toast.LENGTH_SHORT).show();
+      //Toast.makeText(AudioRecordActivity.this, "Task not running.", Toast.LENGTH_SHORT).show();
     }
   }
 
-  private void launchTask(String recordingPath) {
+  public void launchTask(String recordingPath) {
     
-    recordTask = (RecordWaveTask) getLastCustomNonConfigurationInstance();
-    if (recordTask == null) {
-        recordTask = new RecordWaveTask(this);
-    } else {
-        recordTask.setContext(this);
-    }
+    //recordTask = (RecordWaveTask) getLastCustomNonConfigurationInstance();
+    //if (recordTask == null) {
+    //    recordTask = new RecordWaveTask(this);
+    //} else {
+    //    recordTask.setContext(this);
+    //}
 
     switch (recordTask.getStatus()) {
         case RUNNING:
-            Toast.makeText(this, "Task already running...", Toast.LENGTH_SHORT).show();
+            //Toast.makeText(this, "Task already running...", Toast.LENGTH_SHORT).show();
             return;
         case FINISHED:
-            recordTask = new RecordWaveTask(this);
+            recordTask = new RecordWaveTask();
             break;
         case PENDING:
             if (recordTask.isCancelled()) {
-                recordTask = new RecordWaveTask(this);
+                recordTask = new RecordWaveTask();
             }
     }
     File wavFile = new File(recordingPath, "recording_" + System.currentTimeMillis() / 1000 + ".wav");
-    Toast.makeText(this, wavFile.getAbsolutePath(), Toast.LENGTH_LONG).show();
+    //Toast.makeText(this, wavFile.getAbsolutePath(), Toast.LENGTH_LONG).show();
     recordTask.execute(wavFile);
   }
 
-  @Override
-  public Object onRetainCustomNonConfigurationInstance() {
-      recordTask.setContext(null);
-      return recordTask;
-  }
+  //@Override
+  //public Object onRetainCustomNonConfigurationInstance() {
+    //recordTask.setContext(null);
+      //return recordTask;
+  //}
 
-  private static class RecordWaveTask extends AsyncTask<File, Void, Object[]> {
+  public static class RecordWaveTask extends AsyncTask<File, Void, Object[]> {
 
       // Configure me!
       private static final int AUDIO_SOURCE = MediaRecorder.AudioSource.MIC;
@@ -85,15 +85,15 @@ public class AudioRecorder {
 
       private static final int BUFFER_SIZE = 2 * AudioRecord.getMinBufferSize(SAMPLE_RATE, CHANNEL_MASK, ENCODING);
 
-      private Context ctx;
+      //private Context ctx;
 
-      private RecordWaveTask(Context ctx) {
-          setContext(ctx);
+      public RecordWaveTask() {
+          //Do I need this constructor?
       }
 
-      private void setContext(Context ctx) {
-          this.ctx = ctx;
-      }
+      //private void setContext(Context ctx) {
+      //    this.ctx = ctx;
+      //}
 
       /**
        * Opens up the given file, writes the header, and keeps filling it with raw PCM bytes from
@@ -321,18 +321,18 @@ public class AudioRecorder {
           }
 
           // If we're attached to an activity
-          if (ctx != null) {
-              if (throwable == null) {
-                  // Display final recording stats
-                  double size = (long) results[0] / 1000000.00;
-                  long time = (long) results[1] / 1000;
-                  Toast.makeText(ctx, String.format(Locale.getDefault(), "%.2f MB / %d seconds",
-                          size, time), Toast.LENGTH_LONG).show();
-              } else {
+          //if (ctx != null) {
+          //    if (throwable == null) {
+          //        // Display final recording stats
+          //        double size = (long) results[0] / 1000000.00;
+          //        long time = (long) results[1] / 1000;
+                  //Toast.makeText(ctx, String.format(Locale.getDefault(), "%.2f MB / %d seconds",
+                          //size, time), Toast.LENGTH_LONG).show();
+          //    } else {
                   // Error
-                  Toast.makeText(ctx, throwable.getLocalizedMessage(), Toast.LENGTH_LONG).show();
-              }
-          }
+                  //Toast.makeText(ctx, throwable.getLocalizedMessage(), Toast.LENGTH_LONG).show();
+          //    }
+          //}
       }
   }
 

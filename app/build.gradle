@@ -26,3 +26,19 @@ dependencies {
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
 }
+
+// task to delete the old jar
+task deleteOldJar(type: Delete) {
+    delete 'release/ToastPlugin.jar'
+}
+
+// task to export contents as jar
+task exportJar(type: Copy) {
+    from('build/intermediates/bundles/release/')
+    into('release')
+    include('classes.jar')
+    // name the plugin
+    rename('classes.jar','ToastPlugin.jar')
+}
+
+exportJar.dependsOn(deleteOldJar, build)

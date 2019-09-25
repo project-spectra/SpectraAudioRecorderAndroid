@@ -63,9 +63,9 @@ public class AudioRecorder {
                 recordTask = new RecordWaveTask();
             }
     }
-    File wavFile = new File(recordingPath, "recording_" + System.currentTimeMillis() / 1000 + ".wav");
+    //File wavFile = new File(recordingPath, "recording.wav");
     //Toast.makeText(this, wavFile.getAbsolutePath(), Toast.LENGTH_LONG).show();
-    recordTask.execute(wavFile);
+    //recordTask.execute(wavFile);
   }
 
   //@Override
@@ -74,7 +74,7 @@ public class AudioRecorder {
       //return recordTask;
   //}
 
-  public static class RecordWaveTask extends AsyncTask<File, Void, Object[]> {
+  public static class RecordWaveTask extends AsyncTask<String, Void, Object[]> {
 
       // Configure me!
       private static final int AUDIO_SOURCE = MediaRecorder.AudioSource.MIC;
@@ -100,20 +100,24 @@ public class AudioRecorder {
        * AudioRecord until it reaches 4GB or is stopped by the user. It then goes back and updates
        * the WAV header to include the proper final chunk sizes.
        *
-       * @param files Index 0 should be the file to write to
+       * @param strings Index 0 should be the file to write to
        * @return Either an Exception (error) or two longs, the filesize, elapsed time in ms (success)
        */
       @Override
-      protected Object[] doInBackground(File... files) {
+      protected Object[] doInBackground(String... strings) {
           AudioRecord audioRecord = null;
           FileOutputStream wavOut = null;
           long startTime = 0;
           long endTime = 0;
 
+          String recordingPath = strings[0];
+
+          File wavFile = new File(recordingPath, "recording.wav");
+
           try {
               // Open our two resources
               audioRecord = new AudioRecord(AUDIO_SOURCE, SAMPLE_RATE, CHANNEL_MASK, ENCODING, BUFFER_SIZE);
-              wavOut = new FileOutputStream(files[0]);
+              wavOut = new FileOutputStream(wavFile);
 
               // Write out the wav file header
               writeWavHeader(wavOut, CHANNEL_MASK, SAMPLE_RATE, ENCODING);
@@ -171,12 +175,12 @@ public class AudioRecorder {
           try {
               // This is not put in the try/catch/finally above since it needs to run
               // after we close the FileOutputStream
-              updateWavHeader(files[0]);
+              updateWavHeader(wavFile);
           } catch (IOException ex) {
               return new Object[] { ex };
           }
 
-          return new Object[] { files[0].length(), endTime - startTime };
+          return new Object[] { wavFile.length(), endTime - startTime };
       }
 
       /**

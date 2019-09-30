@@ -8,6 +8,7 @@ import android.media.AudioRecord;
 import android.media.MediaRecorder;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
@@ -15,6 +16,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
+import java.io.Console;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -27,54 +29,11 @@ import java.util.Locale;
 //Copied from https://gist.github.com/kmark/d8b1b01fb0d2febf5770
 public class AudioRecorder {
 
-  private RecordWaveTask recordTask = new RecordWaveTask();
-  
   public static String HelloWorld() {
       return "Testing audio recording!";
   }
 
-  public void stopTask() {
-    //Call this when user hits "Done" in NS
-    if (!recordTask.isCancelled() && recordTask.getStatus() == AsyncTask.Status.RUNNING) {
-      recordTask.cancel(false);
-    } else {
-      //Toast.makeText(AudioRecordActivity.this, "Task not running.", Toast.LENGTH_SHORT).show();
-    }
-  }
-
-  public void launchTask(String recordingPath) {
-    
-    //recordTask = (RecordWaveTask) getLastCustomNonConfigurationInstance();
-    //if (recordTask == null) {
-    //    recordTask = new RecordWaveTask(this);
-    //} else {
-    //    recordTask.setContext(this);
-    //}
-
-    switch (recordTask.getStatus()) {
-        case RUNNING:
-            //Toast.makeText(this, "Task already running...", Toast.LENGTH_SHORT).show();
-            return;
-        case FINISHED:
-            recordTask = new RecordWaveTask();
-            break;
-        case PENDING:
-            if (recordTask.isCancelled()) {
-                recordTask = new RecordWaveTask();
-            }
-    }
-    //File wavFile = new File(recordingPath, "recording.wav");
-    //Toast.makeText(this, wavFile.getAbsolutePath(), Toast.LENGTH_LONG).show();
-    //recordTask.execute(wavFile);
-  }
-
-  //@Override
-  //public Object onRetainCustomNonConfigurationInstance() {
-    //recordTask.setContext(null);
-      //return recordTask;
-  //}
-
-  public static class RecordWaveTask extends AsyncTask<String, Void, Object[]> {
+  public static class RecordWaveTask extends AsyncTask<Void, Void, Void> {
 
       // Configure me!
       private static final int AUDIO_SOURCE = MediaRecorder.AudioSource.MIC;
@@ -85,34 +44,36 @@ public class AudioRecorder {
 
       private static final int BUFFER_SIZE = 2 * AudioRecord.getMinBufferSize(SAMPLE_RATE, CHANNEL_MASK, ENCODING);
 
-      //private Context ctx;
+      private Context ctx;
 
-      public RecordWaveTask() {
-          //Do I need this constructor?
+      public RecordWaveTask(Context ctx) {
+          setContext(ctx);
       }
 
-      //private void setContext(Context ctx) {
-      //    this.ctx = ctx;
-      //}
+      private void setContext(Context ctx) {
+          this.ctx = ctx;
+      }
 
       /**
        * Opens up the given file, writes the header, and keeps filling it with raw PCM bytes from
        * AudioRecord until it reaches 4GB or is stopped by the user. It then goes back and updates
        * the WAV header to include the proper final chunk sizes.
        *
-       * @param strings Index 0 should be the file to write to
+       * @param voids Index 0 should be the file to write to
        * @return Either an Exception (error) or two longs, the filesize, elapsed time in ms (success)
        */
       @Override
-      protected Object[] doInBackground(String... strings) {
+      protected Void doInBackground(Void... voids) {
           AudioRecord audioRecord = null;
           FileOutputStream wavOut = null;
           long startTime = 0;
           long endTime = 0;
 
-          String recordingPath = strings[0];
+          //String recordingPath = strings[0];
 
-          File wavFile = new File(recordingPath, "recording.wav");
+          File path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+
+          File wavFile = new File(path, "recording.wav");
 
           try {
               // Open our two resources
@@ -148,7 +109,8 @@ public class AudioRecorder {
                   }
               }
           } catch (IOException ex) {
-              return new Object[]{ex};
+              ex.printStackTrace();
+              return null;
           } finally {
               if (audioRecord != null) {
                   try {
@@ -177,10 +139,13 @@ public class AudioRecorder {
               // after we close the FileOutputStream
               updateWavHeader(wavFile);
           } catch (IOException ex) {
-              return new Object[] { ex };
+              ex.printStackTrace();
+              return null;
           }
 
-          return new Object[] { wavFile.length(), endTime - startTime };
+          System.out.println(wavFile.length());
+          System.out.println(endTime - startTime);
+          return null;
       }
 
       /**
@@ -310,31 +275,31 @@ public class AudioRecorder {
       }
 
       @Override
-      protected void onCancelled(Object[] results) {
+      protected void onCancelled(Void result) {
           // Handling cancellations and successful runs in the same way
-          onPostExecute(results);
+          onPostExecute(result);
       }
 
       @Override
-      protected void onPostExecute(Object[] results) {
-          Throwable throwable = null;
-          if (results[0] instanceof Throwable) {
-              // Error
-              throwable = (Throwable) results[0];
-              Log.e(RecordWaveTask.class.getSimpleName(), throwable.getMessage(), throwable);
-          }
+      protected void onPostExecute(Void result) {
+          //Throwable throwable = null;
+          //if (results[0] instanceof Throwable) {
+          //    // Error
+          //    throwable = (Throwable) results[0];
+          //    Log.e(RecordWaveTask.class.getSimpleName(), throwable.getMessage(), throwable);
+          //}
 
           // If we're attached to an activity
           //if (ctx != null) {
           //    if (throwable == null) {
           //        // Display final recording stats
           //        double size = (long) results[0] / 1000000.00;
-          //        long time = (long) results[1] / 1000;
-                  //Toast.makeText(ctx, String.format(Locale.getDefault(), "%.2f MB / %d seconds",
-                          //size, time), Toast.LENGTH_LONG).show();
+          //       long time = (long) results[1] / 1000;
+          //        Toast.makeText(ctx, String.format(Locale.getDefault(), "%.2f MB / %d seconds",
+          //                size, time), Toast.LENGTH_LONG).show();
           //    } else {
-                  // Error
-                  //Toast.makeText(ctx, throwable.getLocalizedMessage(), Toast.LENGTH_LONG).show();
+          //        // Error
+          //        Toast.makeText(ctx, throwable.getLocalizedMessage(), Toast.LENGTH_LONG).show();
           //    }
           //}
       }

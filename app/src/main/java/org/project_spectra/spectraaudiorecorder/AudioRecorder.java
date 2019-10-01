@@ -29,7 +29,7 @@ public class AudioRecorder {
     }
 
   /*public void launchTask(String recordingPath) {
-    
+
     //recordWaveTask = (RecordWaveTask) getLastCustomNonConfigurationInstance();
     //if (recordWaveTask == null) {
     //    recordWaveTask = new RecordWaveTask(this);
